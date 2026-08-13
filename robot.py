@@ -1,13 +1,5 @@
 from abc import ABC, abstractmethod
 
-class InsufficientBatteryError(Exception):
-    def __init__(self, name, required, available):
-        self.name = name
-        self.required = required
-        self.available = available
-        message = f"{name} needs {required}% battery for this task but only has {available}%."
-        super().__init__(message)
-
 class Robot(ABC):
     manufacturer = "Omnics"
     population = 0
@@ -24,11 +16,6 @@ class Robot(ABC):
     @battery.setter
     def battery(self,value):
         self._battery = max(0, min(value, 100))
-
-    def use_battery(self, amount):
-        if amount > self.battery:
-            raise InsufficientBatteryError(self.name, amount, self.battery)
-        self.battery -= amount
 
     def __str__(self):
         return f"{self.name} currently have {self.battery}% battery remaining."
@@ -56,12 +43,12 @@ class Robot(ABC):
 
 
 class CleaningRobot(Robot):
-    def __init__(self, name, battery=5, capacity = 100):
+    def __init__(self, name, battery=100, capacity = 100):
         super().__init__(name, battery)
         self.capacity = capacity
 
     def perform_task(self):
-        self.use_battery -=10
+        self.battery -=10
         return f"{self.name} is cleaning. Battery is now at {self.battery}%."
 
 class DroneRobot(Robot):
@@ -70,12 +57,8 @@ class DroneRobot(Robot):
         self.altitude = altitude
 
     def perform_task(self):
-        self.use_battery -=15
+        self.battery -= 15
         return f"{self.name} is flying at {self.altitude} meters. Battery is now at {self.battery}%."
-
-def fleet_report(robots):
-    for robot in robots:
-        print(str(robot))
 
 c1 = CleaningRobot("C-Bot")
 d1 = DroneRobot("AquaBot")
@@ -86,5 +69,3 @@ print(c1)
 print(d1.perform_task())
 print(d1)
 
-fleet = [c1, d1]
-fleet_report(fleet)
