@@ -1,4 +1,15 @@
 from abc import ABC, abstractmethod
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
+class InsufficientBatteryError(Exception):
+    def __init__(self, name, required, available):
+        self.name = name
+        self.required = required
+        self.available = available
+        message = f"{name} needs {required}% battery for this task but only has {available}%."
+        super().__init__(message)
 
 class Robot(ABC):
     manufacturer = "Omnics"
@@ -16,6 +27,11 @@ class Robot(ABC):
     @battery.setter
     def battery(self,value):
         self._battery = max(0, min(value, 100))
+
+    def use_battery(self, amount):
+        if amount > self.battery:
+            raise InsufficientBatteryError(self.name, amount, self.battery)
+        self.battery -= amount
 
     def __str__(self):
         return f"{self.name} currently have {self.battery}% battery remaining."
@@ -43,25 +59,49 @@ class Robot(ABC):
 
 
 class CleaningRobot(Robot):
-    def __init__(self, name, battery=100, capacity = 100):
+    def __init__(self, name, battery=80, capacity = 100):
         super().__init__(name, battery)
         self.capacity = capacity
 
     def perform_task(self):
-        self.battery -=10
+        self.use_battery(10)
         return f"{self.name} is cleaning. Battery is now at {self.battery}%."
 
 class DroneRobot(Robot):
-    def __init__(self, name, battery=100, altitude=0):
+    def __init__(self, name, battery=100, altitude=50):
         super().__init__(name, battery)
         self.altitude = altitude
 
     def perform_task(self):
-        self.battery -= 15
+        self.use_battery(15)
         return f"{self.name} is flying at {self.altitude} meters. Battery is now at {self.battery}%."
+    
+class FallBot(Robot):
+    def __init__(self, name, battery=5, mewing = 100):
+        super().__init__(name, battery)
+        self.mewing = mewing
+
+    def perform_task(self):
+        self.use_battery(10)
+        return f"{self.name} is mewing rn. Battery is now at {self.battery}%."
+
+def fleet_report(robots):
+    for robot in robots:
+        print(str(robot))
+
+def run_task_safely(robot, **kwargs):  
+    try:
+        result = robot.perform_task(**kwargs)
+    except InsufficientBatteryError as e:
+        logging.error(e)
+    else:
+        print(result)
+    finally:
+        print(f"{robot.name}'s battery is now at {robot.battery}%.")
 
 c1 = CleaningRobot("C-Bot")
 d1 = DroneRobot("AquaBot")
+f1 = FallBot("FallBot")
 
 print(c1.perform_task())
 print(c1)
@@ -69,3 +109,12 @@ print(c1)
 print(d1.perform_task())
 print(d1)
 
+# print(f1.perform_task())
+# print(f1)
+
+fleet = [c1, d1]
+fleet_report(fleet)
+
+run_task_safely(c1)
+run_task_safely(d1)
+run_task_safely(f1)
