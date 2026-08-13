@@ -1,7 +1,17 @@
 from abc import ABC, abstractmethod
 import logging
+import functools
 
 logging.basicConfig(level=logging.INFO)
+
+def log_action(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        logging.info(f"{self.name} is starting {func.__name__}.")
+        result = func(self, *args, **kwargs)
+        logging.info(f"{self.name} is finished {func.__name__}.")
+        return result
+    return wrapper
 
 class InsufficientBatteryError(Exception):
     def __init__(self, name, required, available):
@@ -63,7 +73,9 @@ class CleaningRobot(Robot):
         super().__init__(name, battery)
         self.capacity = capacity
 
+    @log_action
     def perform_task(self):
+        """Clean the floor and use 10% battery."""
         self.use_battery(10)
         return f"{self.name} is cleaning. Battery is now at {self.battery}%."
 
@@ -103,18 +115,12 @@ c1 = CleaningRobot("C-Bot")
 d1 = DroneRobot("AquaBot")
 f1 = FallBot("FallBot")
 
-print(c1.perform_task())
-print(c1)
-
-print(d1.perform_task())
-print(d1)
-
-# print(f1.perform_task())
-# print(f1)
-
 fleet = [c1, d1]
 fleet_report(fleet)
 
 run_task_safely(c1)
 run_task_safely(d1)
 run_task_safely(f1)
+
+print(CleaningRobot.perform_task.__name__)
+print(CleaningRobot.perform_task.__doc__)
