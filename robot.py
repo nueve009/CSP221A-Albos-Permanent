@@ -30,6 +30,10 @@ class Robot(ABC):
         self.battery = battery
         Robot.population += 1  
 
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
     @property
     def battery(self):
         return self._battery
@@ -52,7 +56,8 @@ class Robot(ABC):
     @abstractmethod
     def perform_task(self):
         pass
-    
+
+# Code for my 1.1  
 # r1 = Robot("Bastion")
 # r2 = Robot("Ramattra", 500)
 # r3 = Robot("Orisa", -50)
@@ -124,3 +129,7 @@ run_task_safely(f1)
 
 print(CleaningRobot.perform_task.__name__)
 print(CleaningRobot.perform_task.__doc__)
+
+config = {"name": "AQbot", "battery": 60}
+bot = DroneRobot.from_config(config)
+print(bot)
